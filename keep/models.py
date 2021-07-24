@@ -5,7 +5,14 @@ class User(AbstractUser):
     pass
 
 class Label(models.Model):
-    name = models.CharField(max_length=64)
+    # user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="notes")
+    name = models.CharField(max_length=64, unique=True)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }
 
 class Note(models.Model):
     # user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="notes")
@@ -21,7 +28,7 @@ class Note(models.Model):
     def serialize(self):
         return {
             "id": self.id,
-            # "owner": self.owner,
+            # "user": self.user,
             "title": self.title,
             "body": self.body,
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),

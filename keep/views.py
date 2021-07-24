@@ -32,12 +32,10 @@ def notes(request):
         return  JsonResponse({"message": "Note saved."}, status=201)
 
     elif request.method == "GET":
-        notes = Note.objects.all()
-        return JsonResponse([note.serialize() for note in notes], safe=False)
+        return JsonResponse([note.serialize() for note in Note.objects.all()], safe=False)
 
     else:
         return JsonResponse({"error": "GET or POST request required."}, status=400)
-
 
 @csrf_exempt
 def note(request, note_id):
@@ -79,4 +77,54 @@ def note(request, note_id):
 
     if request.method == "DELETE":
         note.delete()
+        return HttpResponse(status=204)
+
+@csrf_exempt
+def labels(request):
+    if request.method == "GET":
+        return JsonResponse([label.serialize() for label in Label.objects.all()], safe=False)
+
+    elif request.method == "POST":
+        data = json.loads(request.body)
+        if data.get("name") is None:
+            return JsonResponse({"error": "Label name required."}, status=400)
+
+        if data["name"] == "":
+            return JsonResponse({"error": "Label cannot be blank."}, status=400)
+        elif data["name"] in [label.name for label in Label.objects.all()]:
+            return JsonResponse({"error": "Label already exists."}, status=400)
+
+        label = Label(name=data["name"])
+        label.save()
+        return HttpResponse(status=204)
+
+    else:
+        return JsonResponse({"error": "GET or POST request required."}, status=400)
+
+@csrf_exempt
+def label(request, label_id):
+    try:
+        label = Label.objects.get(pk=label_id)
+    except Label.DoesNotExist:
+        return JsonResponse({"error": "Label not found."}, status=404)
+
+    if request.method == "GET":
+        return JsonResponse(label.serialize())
+
+    if request.method == "PUT":
+        data = json.loads(request.body)
+        if data.get("new_name") is None:
+            return JsonResponse({"error": "Label new_name required."}, status=400)
+
+        if data["new_name"] == "":
+            return JsonResponse({"error": "Label cannot be blank."}, status=400)
+        elif data["new_name"] in [label.name for label in Label.objects.all()]:
+            return JsonResponse({"error": "Label already exists."}, status=400)
+
+        label.name = data["new_name"]
+        label.save()
+        return HttpResponse(status=204)
+
+    if request.method == "DELETE":
+        label.delete()
         return HttpResponse(status=204)
