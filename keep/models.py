@@ -16,7 +16,7 @@ class Note(models.Model):
     archived = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
     pinned = models.BooleanField(default=False)
-    label = models.ForeignKey("Label", on_delete=models.PROTECT, related_name="notes", null=True)
+    label = models.ManyToManyField("Label", related_name="notes", null=True)
 
     def serialize(self):
         return {
