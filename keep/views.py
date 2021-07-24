@@ -6,32 +6,38 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import User, Label, Note
 
 @csrf_exempt
-def add(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "POST request required."}, status=400)
+def notes(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        note = Note(
+            # user = request.user,
+            title = data.get("title", ""),
+            body = data.get("body", ""),
+            color = data.get("color", "000000")
+        )
+        note.save()
 
-    data = json.loads(request.body)
-    note = Note(
-        # user = request.user,
-        title = data.get("title", ""),
-        body = data.get("body", ""),
-        color = data.get("color", "000000")
-    )
-    note.save()
-    
-    if data.get("labels") is not None:
-        labels = []
-        for label_id in data["labels"]:
-            try:
-                labels += [Label.objects.get(id=label_id)]
-            except Label.DoesNotExist:
-                note.delete()
-                return JsonResponse({
-                    "error": f"Label {label_id} does not exist."
-                }, status=400)
-        note.labels.add(*labels)
+        if data.get("labels") is not None:
+            labels = []
+            for label_id in data["labels"]:
+                try:
+                    labels += [Label.objects.get(id=label_id)]
+                except Label.DoesNotExist:
+                    note.delete()
+                    return JsonResponse({
+                        "error": f"Label {label_id} does not exist."
+                    }, status=400)
+            note.labels.add(*labels)
 
-    return  JsonResponse({"message": "Note saved."}, status=201)
+        return  JsonResponse({"message": "Note saved."}, status=201)
+
+    elif request.method == "GET":
+        notes = Note.objects.all()
+        return JsonResponse([note.serialize() for note in notes], safe=False)
+
+    else:
+        return JsonResponse({"error": "GET or POST request required."}, status=400)
+
 
 @csrf_exempt
 def note(request, note_id):
@@ -74,10 +80,3 @@ def note(request, note_id):
     if request.method == "DELETE":
         note.delete()
         return HttpResponse(status=204)
-
-def notes(request):
-    if request.method != "GET":
-        return JsonResponse({"error": "GET request required."}, status=400)
-
-    notes = Note.objects.all()
-    return JsonResponse([note.serialize() for note in notes], safe=False)
