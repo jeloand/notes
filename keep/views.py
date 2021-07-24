@@ -12,13 +12,24 @@ def add(request):
 
     data = json.loads(request.body)
     note = Note(
-        # owner = request.user,
+        # user = request.user,
         title = data.get("title", ""),
         body = data.get("body", ""),
-        color = data.get("color", "000000"),
-        # label = data.get("label")
+        color = data.get("color", "000000")
     )
     note.save()
+    
+    if data.get("labels") is not None:
+        labels = []
+        for label_id in data["labels"]:
+            try:
+                labels += [Label.objects.get(id=label_id)]
+            except Label.DoesNotExist:
+                note.delete()
+                return JsonResponse({
+                    "error": f"Label {label_id} does not exist."
+                }, status=400)
+        note.labels.add(*labels)
 
     return  JsonResponse({"message": "Note saved."}, status=201)
 
@@ -41,14 +52,16 @@ def note(request, note_id):
             note.body = data["body"]
         if data.get("color") is not None:
             note.color = data["color"]
-        if data.get("label_id") is not None:
-            try:
-                label = Label.objects.get(id=label_id)
-                note.label = label_id
-            except Label.DoesNotExist:
-                return JsonResponse({
-                    "error": f"Label {label_id} does not exist."
-                }, status=400)
+        if data.get("labels") is not None:
+            labels = []
+            for label_id in data["labels"]:
+                try:
+                    labels += [Label.objects.get(id=label_id)]
+                except Label.DoesNotExist:
+                    return JsonResponse({
+                        "error": f"Label {label_id} does not exist."
+                    }, status=400)
+            note.labels.add(*labels)
         if data.get("archived") is not None:
             note.archived = data["archived"]
         if data.get("deleted") is not None:

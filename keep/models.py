@@ -8,7 +8,7 @@ class Label(models.Model):
     name = models.CharField(max_length=64)
 
 class Note(models.Model):
-    # owner = models.ForeignKey("User", on_delete=models.CASCADE, related_name="notes")
+    # user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="notes")
     title = models.CharField(max_length=255, blank=True)
     body = models.TextField(blank=True)
     timestamp = models.DateTimeField(auto_now=True)
@@ -16,7 +16,7 @@ class Note(models.Model):
     archived = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
     pinned = models.BooleanField(default=False)
-    label = models.ManyToManyField("Label", related_name="notes")
+    labels = models.ManyToManyField("Label", related_name="notes")
 
     def serialize(self):
         return {
@@ -24,13 +24,13 @@ class Note(models.Model):
             # "owner": self.owner,
             "title": self.title,
             "body": self.body,
-            "timestamp": self.timestamp,
+            "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
             "color": self.color,
             "archived": self.archived,
             "deleted": self.deleted,
             "pinned": self.pinned,
-            "label": dict(zip(
-                [label.id for label in self.label.all()],
-                [label.name for label in self.label.all()],
+            "labels": dict(zip(
+                [label.id for label in self.labels.all()],
+                [label.name for label in self.labels.all()],
             ))
         }
