@@ -16,7 +16,7 @@ class Note(models.Model):
     archived = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
     pinned = models.BooleanField(default=False)
-    label = models.ManyToManyField("Label", related_name="notes", null=True)
+    label = models.ManyToManyField("Label", related_name="notes")
 
     def serialize(self):
         return {
@@ -29,5 +29,8 @@ class Note(models.Model):
             "archived": self.archived,
             "deleted": self.deleted,
             "pinned": self.pinned,
-            "label": self.label
+            "label": dict(zip(
+                [label.id for label in self.label.all()],
+                [label.name for label in self.label.all()],
+            ))
         }
