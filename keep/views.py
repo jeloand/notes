@@ -35,7 +35,9 @@ def notes(request):
         return JsonResponse([note.serialize() for note in Note.objects.all()], safe=False)
 
     else:
-        return JsonResponse({"error": "GET or POST request required."}, status=400)
+        return JsonResponse({
+            "error": "GET or POST request required."
+        }, status=400)
 
 @csrf_exempt
 def note(request, note_id):
@@ -48,7 +50,7 @@ def note(request, note_id):
     if request.method == "GET":
         return JsonResponse(note.serialize())
 
-    if request.method == "PUT":
+    elif request.method == "PUT":
         data = json.loads(request.body)
         if data.get("title") is not None:
             note.title = data["title"]
@@ -75,9 +77,14 @@ def note(request, note_id):
         note.save()
         return HttpResponse(status=204)
 
-    if request.method == "DELETE":
+    elif request.method == "DELETE":
         note.delete()
         return HttpResponse(status=204)
+
+    else:
+        return JsonResponse({
+            "error": "GET, PUT, or DELETE request required."
+        }, status=400)
 
 @csrf_exempt
 def labels(request):
@@ -99,7 +106,9 @@ def labels(request):
         return HttpResponse(status=204)
 
     else:
-        return JsonResponse({"error": "GET or POST request required."}, status=400)
+        return JsonResponse({
+            "error": "GET or POST request required."
+        }, status=400)
 
 @csrf_exempt
 def label(request, label_id):
@@ -111,7 +120,7 @@ def label(request, label_id):
     if request.method == "GET":
         return JsonResponse(label.serialize())
 
-    if request.method == "PUT":
+    elif request.method == "PUT":
         data = json.loads(request.body)
         if data.get("new_name") is None:
             return JsonResponse({"error": "Label new_name required."}, status=400)
@@ -125,6 +134,11 @@ def label(request, label_id):
         label.save()
         return HttpResponse(status=204)
 
-    if request.method == "DELETE":
+    elif request.method == "DELETE":
         label.delete()
         return HttpResponse(status=204)
+
+    else:
+        return JsonResponse({
+            "error": "GET, PUT, or DELETE request required."
+        }, status=400)
