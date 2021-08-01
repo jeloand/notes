@@ -1,11 +1,115 @@
 {% extends "keep/layout.html" %}
 
+{% block script %}
+<script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadNotes();
+
+        const createNote = document.querySelector('#take-note');
+        createNote.addEventListener('click', () => {
+            document.querySelector('#note-placeholder').style.display = "none";
+            document.querySelector('#note-form').style.display = "block";
+        })
+
+        document.addEventListener('click', (e) => {
+            if(e.target.contains(document.getElementById('take-note'))) {
+                document.querySelector('#note-placeholder').style.display = "block";
+                document.querySelector('#note-form').style.display = "none";
+            }
+        });
+    });
+
+    function loadNotes() {
+        fetch('/notes')
+        .then(response => response.json())
+        .then(notes => {
+
+            const noteArea = document.querySelector('#note-area');
+
+            notes.forEach((note) => {
+                console.log(note)
+                const element = document.createElement('div');
+                element.classList.add('col-xs-12', 'col-sm-6', 'col-md-4', 'col-lg-3', 'pt-2');
+                element.innerHTML =
+                    '<div class="card">\
+                        <div class="card-body">\
+                            <h5 class="card-title">' + note.title + '</h5>\
+                            <p class="card-text">'
+                                + note.body
+                            + '</p>\
+                        </div>\
+                        <div class="card-footer">\
+                            footer\
+                        </div>\
+                    </div>'
+                noteArea.append(element);
+            })
+
+        });
+    }
+
+</script>
+{% endblock %}
+
 {% block body %}
 
     {% if message %}
         <div>{{ message }}</div>
     {% endif %}
 
-    
+    <style>
+        .form-title, .form-body {
+            border: 0;
+            display: block;
+            width: 100%;
+        }
 
+        .form-title {
+            font-size: 1.2em;
+        }
+
+        .form-title::placeholder {
+            font-weight: 600;
+        }
+
+        .form-body::placeholder {
+            font-weight: 500;
+        }
+
+        .form-title:focus, .form-body:focus {
+            outline: none;
+        }
+    </style>
+
+    <nav class="navbar bg-dark text-white">
+        <div class="navbar-brand ">
+            <strong>
+                Notes
+            </strong>
+        </div>
+        <form class="d-flex">
+        <input class="form-control bg-light" type="search" placeholder="Search" aria-label="Search">
+      </form>
+    </nav>
+    <div class="container pt-3">
+        <div class="d-flex justify-content-center">
+            <div class="card col-md-12 col-lg-6" id="take-note">
+                <div class="card-body p-2" id="note-placeholder">
+                    <h5 class="card-text">
+                        Take a note...
+                    </h5>
+                </div>
+                <div class="card-body p-2" id="note-form" style="display:none">
+                    <form>
+                        <input type="textbox" placeholder="Title" class="form-title my-1">
+                        <input type="textarea" placeholder="Take a note..." class="form-body my-1">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-start" id="note-area">
+
+        </div>
+    </div>
 {% endblock %}

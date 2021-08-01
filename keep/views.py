@@ -177,7 +177,7 @@ def login_view(request):
             return HttpResponseRedirect(reverse("index"))
         else:
             return render(request, "keep/login.html", {
-                "message": "Invalid email and/or password."
+                "message": "Invalid username and/or password."
             })
     else:
         return render(request, "keep/login.html")
